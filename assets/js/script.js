@@ -1,14 +1,13 @@
-document.getElementById('generate-button').addEventListener('click', function() {
+document.getElementById('generate-button').addEventListener('click', function () {
   const fileInput = document.getElementById('file-input');
   const file = fileInput.files[0];
 
   if (file) {
     const reader = new FileReader();
 
-    reader.onload = function(e) {
+    reader.onload = function (e) {
       const data = new Uint8Array(e.target.result);
       const workbook = XLSX.read(data, { type: 'array' });
-
       const sheet = workbook.Sheets[workbook.SheetNames[0]];
       const studentData = XLSX.utils.sheet_to_json(sheet);
 
@@ -39,7 +38,21 @@ document.getElementById('generate-button').addEventListener('click', function() 
             <p>Final Rating: ${rating}</p>
           </div>
         `;
-        classCards.innerHTML += card;
+
+        const cardContainer = document.createElement('div');
+        cardContainer.className = 'card-container';
+
+        cardContainer.innerHTML = card;
+
+        const downloadButton = document.createElement('button');
+        downloadButton.innerHTML = '<i class="fa fa-download"></i> Download Card';
+        downloadButton.addEventListener('click', function () {
+          downloadCardAsImage(cardContainer);
+        });
+
+        cardContainer.appendChild(downloadButton);
+
+        classCards.appendChild(cardContainer);
       });
     };
 
@@ -48,3 +61,18 @@ document.getElementById('generate-button').addEventListener('click', function() 
     alert('Please select an Excel file.');
   }
 });
+
+function downloadCardAsImage(cardContainer) {
+  html2canvas(cardContainer, {
+    onclone: function (clone) {
+      clone.querySelector('.card-container button').style.display = 'none';
+    }
+  }).then(canvas => {
+    const imageData = canvas.toDataURL('image/png');
+
+    const downloadLink = document.createElement('a');
+    downloadLink.href = imageData;
+    downloadLink.download = 'card.png';
+    downloadLink.click();
+  });
+}
